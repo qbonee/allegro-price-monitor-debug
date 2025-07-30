@@ -25,7 +25,7 @@ def get_token():
 def get_price(offer_id, token):
     headers = {
         "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.allegro.public.v1+json"
+        "Accept": "application/vnd.allegro.public.v1+json"  # lub .v1.0+json jeśli nadal będzie 406
     }
     url = f"{API_URL}/offers/{offer_id}"
     response = requests.get(url, headers=headers)
@@ -34,6 +34,7 @@ def get_price(offer_id, token):
         return float(data["sellingMode"]["price"]["amount"])
     print(f"❌ Nie udało się pobrać danych oferty {offer_id}. Kod: {response.status_code}")
     return None
+
 
 def send_email(subject, body):
     msg = MIMEText(body)
