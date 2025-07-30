@@ -28,17 +28,12 @@ def get_price(offer_id, token):
         "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.allegro.public.v1+json"
     }
-    params = {
-        "offer.id": offer_id
-    }
-    url = f"{API_URL}/offers/listing"
-    response = requests.get(url, headers=headers, params=params)
+    url = f"{API_URL}/offers/{offer_id}"
+    response = requests.get(url, headers=headers)
     if response.status_code == 200:
         data = response.json()
-        if data.get("items", {}).get("regular", {}).get("offers"):
-            offer = data["items"]["regular"]["offers"][0]
-            return float(offer["sellingMode"]["price"]["amount"])
-    print(f"❌ Nie znaleziono aukcji {offer_id} w wynikach listing API.")
+        return float(data["sellingMode"]["price"]["amount"])
+    print(f"❌ Nie udało się pobrać danych oferty {offer_id}. Kod: {response.status_code}")
     return None
 
 def send_email(subject, body):
