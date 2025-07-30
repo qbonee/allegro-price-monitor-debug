@@ -17,23 +17,24 @@ EMAIL_RECEIVERS = os.getenv("EMAIL_RECEIVER").split(",")
 API_URL = "https://api.allegro.pl"
 TOKEN_URL = "https://allegro.pl/auth/oauth/token"
 
-def get_token():
-    auth = requests.auth.HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET)
-    response = requests.post(TOKEN_URL, auth=auth, data={"grant_type": "client_credentials"})
-    response.raise_for_status()
-    return response.json()["access_token"]
-
 def get_price(offer_id, token):
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.allegro.public.v1+json"
     }
-    url = f"{API_URL}/offers/{offer_id}"
-    response = requests.get(url, headers=headers)
+    params = {
+        "offer.id": offer_id
+    }
+    url = f"{API_URL}/offers/listing"
+    response = requests.get(url, headers=headers, params=params)
     if response.status_code == 200:
         data = response.json()
-        return float(data["sellingMode"]["price"]["amount"])
+        if data.get("items", {}).get("regular", {}).get("offers"):
+            offer = data["items"]["regular"]["offers"][0]
+            return float(offer["sellingMode"]["price"]["amount"])
+    print(f"❌ Nie znaleziono aukcji {offer_id} w wynikach listing API.")
     return None
+
 
 def send_email(subject, body):
     msg = MIMEText(body)
