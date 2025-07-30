@@ -25,16 +25,22 @@ def get_token():
 def get_price(offer_id, token):
     headers = {
         "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.allegro.public.v1+json"  # lub .v1.0+json jeśli nadal będzie 406
+        "Accept": "application/vnd.allegro.public.v1+json",
+        "Accept-Language": "pl-PL"
     }
     url = f"{API_URL}/offers/{offer_id}"
     response = requests.get(url, headers=headers)
+
     if response.status_code == 200:
         data = response.json()
         return float(data["sellingMode"]["price"]["amount"])
-    print(f"❌ Nie udało się pobrać danych oferty {offer_id}. Kod: {response.status_code}")
+    elif response.status_code == 404:
+        print(f"❌ Oferta {offer_id} nie istnieje (404)")
+    elif response.status_code == 406:
+        print(f"❌ Błąd 406 – problem z nagłówkiem Accept. Spróbuj zmienić jego wersję.")
+    else:
+        print(f"❌ Nie udało się pobrać danych oferty {offer_id}. Kod: {response.status_code}")
     return None
-
 
 def send_email(subject, body):
     msg = MIMEText(body)
@@ -50,6 +56,7 @@ def send_email(subject, body):
 def check_all_products():
     token = get_token()
     alerts = []
+
     for file in os.listdir("products"):
         if file.endswith(".json"):
             print(f"🔍 Przetwarzam plik: {file}")
